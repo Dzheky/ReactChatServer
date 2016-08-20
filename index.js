@@ -2,16 +2,7 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-const mongoose = require('mongoose');
-
-mongoose.Promise = global.Promise;
-mongoose.connect(process.env.MONGODB_URI);
-
-mongoose.connection.on('error', (err) => {
-    console.error(err);
-});
-
-
+const Message = require('./message');
 
 app.get('/', (req, res) => {
     res.json([{
@@ -28,23 +19,30 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
   console.log(`a user ${socket.id} connected`);
-  socket.on('disconnect', function(){
+  socket.on('disconnect', () => {
     console.log(`user ${socket.id} disconnected`);
   });
   socket.on('message', message => {
     console.log(`Message from ${socket.id}: ${message.user}: ${message.text}`);
-    io.emit('message', message);
+    Message.create(message, (err, dbMessage) => {
+        if (err) return console.error(err);
+        io.emit('message', dbMessage);
+    });
   });
-  [{
-      user: 'system',
-      text: 'Welcome to ReactChat!'
-    }, {
-      user: 'Evgeny',
-      text: 'Testing'
-    }, {
-        user: 'Ванька',
-        text: 'пробую русский текст'
-  }].forEach(message => socket.emit('message', message));
+  Message.find().sort('-created_at').limit(100).exec((err, messages) => {
+      if (err) return console.error(err);
+      messages.reverse().forEach(message => socket.emit('message', message));
+  });
+//   [{
+//       user: 'system',
+//       text: 'Welcome to ReactChat!'
+//     }, {
+//       user: 'Evgeny',
+//       text: 'Testing'
+//     }, {
+//         user: 'Ванька',
+//         text: 'пробую русский текст'
+//   }].forEach(message => socket.emit('message', message));
 });
 
 http.listen(process.env.PORT, process.env.IP, () => {
