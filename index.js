@@ -33,16 +33,6 @@ io.on('connection', (socket) => {
       if (err) return console.error(err);
       messages.reverse().forEach(message => socket.emit('message', message));
   });
-//   [{
-//       user: 'system',
-//       text: 'Welcome to ReactChat!'
-//     }, {
-//       user: 'Evgeny',
-//       text: 'Testing'
-//     }, {
-//         user: 'Ванька',
-//         text: 'пробую русский текст'
-//   }].forEach(message => socket.emit('message', message));
 });
 
 http.listen(process.env.PORT, process.env.IP, () => {
