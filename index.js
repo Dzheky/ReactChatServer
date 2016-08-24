@@ -36,11 +36,11 @@ io.on('connection', (socket) => {
     UserDB.findOne({userName: user.userName}, function(err, result) {
       if(err) console.log(err);
       if(result !== null) {
-        io.emmit('user', {message: 'This name is taken.'});
+        io.emit('user', {message: 'This name is taken.'});
       } else {
         UserDB.create(user, (err, dbUser) => {
           if(err) return console.error(err);
-          io.emmit('user', {message: true});
+          io.emit('user', {message: true});
         });
       }
 
