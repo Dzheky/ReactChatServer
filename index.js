@@ -2,7 +2,8 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-const Message = require('./message');
+const MessageDB = require('./message');
+const UserDB = require('./users');
 
 app.get('/', (req, res) => {
     res.json([{
@@ -24,12 +25,30 @@ io.on('connection', (socket) => {
   });
   socket.on('message', message => {
     console.log(`Message from ${socket.id}: ${message.user}: ${message.text}`);
-    Message.create(message, (err, dbMessage) => {
+    MessageDB.create(message, (err, dbMessage) => {
         if (err) return console.error(err);
         io.emit('message', dbMessage);
     });
   });
-  Message.find().sort('-created_at').limit(100).exec((err, messages) => {
+
+  socket.on('user', (user) => {
+    console.log('Request for new username: ' + user.userName);
+    UserDB.findOne({userName: user.userName}, function(err, result) {
+      if(err) console.log(err);
+      if(result !== null) {
+        io.emmit('user', {message: 'This name is taken.'});
+      } else {
+        UserDB.create(user, (err, dbUser) => {
+          if(err) return console.error(err);
+          io.emmit('user', {message: true});
+        });
+      }
+
+    })
+
+  })
+
+  MessageDB.find().sort('-created_at').limit(100).exec((err, messages) => {
       if (err) return console.error(err);
       messages.reverse().forEach(message => socket.emit('message', message));
   });
