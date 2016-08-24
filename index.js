@@ -19,7 +19,8 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log(`a user ${socket.id} connected`);
+  console.log(`a user ${socket.id}, uuid: ${socket.handshake.uuid} connected`);
+
   socket.on('disconnect', () => {
     console.log(`user ${socket.id} disconnected`);
   });
