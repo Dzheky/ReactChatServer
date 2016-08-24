@@ -31,7 +31,7 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('user', (user) => {
+  io.on('user', (user) => {
     console.log('Request for new username: ' + user.userName);
     UserDB.findOne({userName: user.userName}, function(err, result) {
       if(err) console.log(err);
